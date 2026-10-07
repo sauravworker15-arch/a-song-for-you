@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>A song, for you.</title>
+<style>
+:root{--paper:#f5f1e8;--ink:#171717;--muted:#777067;--gold:#a88652}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--paper);color:var(--ink)}
+body{font-family:Georgia,"Times New Roman",serif;display:grid;place-items:center;padding:28px}
+.card{width:min(520px,100%);text-align:center}
+.kicker{font:11px/1.4 Arial,sans-serif;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-bottom:28px}
+h1{font-size:clamp(34px,9vw,52px);font-weight:400;line-height:1.05;margin:0 0 12px}
+.subtitle{font-size:16px;color:var(--muted);font-style:italic;margin-bottom:42px}
+.cover{width:min(300px,78vw);aspect-ratio:1;margin:auto;border:1px solid #d8cfbf;display:grid;place-items:center;position:relative;background:#eee8dc;box-shadow:0 18px 45px rgba(40,30,15,.10)}
+.cover:before,.cover:after{content:"";position:absolute;inset:14px;border:1px solid #d8cfbf}
+.cover:after{inset:28px;border-color:#e3dacb}
+.note{font-size:58px;line-height:1;z-index:1;color:var(--gold)}
+.player{margin-top:34px}
+button{border:0;background:none;color:var(--ink);cursor:pointer}
+.play{width:58px;height:58px;border:1px solid #bdb3a3;border-radius:50%;font:18px Georgia}
+.wave{height:74px;margin:20px 0 5px;display:flex;align-items:center;justify-content:center;gap:3px}
+.bar{width:2px;background:var(--gold);height:10%;opacity:.65;transition:height .08s linear}
+.time{display:flex;justify-content:space-between;font:11px Arial,sans-serif;letter-spacing:.08em;color:#8b8378}
+.message{margin:46px auto 0;max-width:390px;font-size:18px;line-height:1.65}
+.footer{margin-top:48px;font:10px Arial,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#aaa096}
+@media(prefers-reduced-motion:reduce){.bar{transition:none}}
+</style>
+</head>
+<body>
+<main class="card">
+  <div class="kicker">A little something for you</div>
+  <h1>A song, for you.</h1>
+  <div class="subtitle">Press play. That's all.</div>
+
+  <div class="cover" aria-label="Music artwork">
+    <div class="note">♪</div>
+  </div>
+
+  <section class="player" aria-label="Audio player">
+    <button class="play" id="play" aria-label="Play song">▶</button>
+    <div class="wave" id="wave" aria-hidden="true"></div>
+    <div class="time"><span id="current">0:00</span><span id="duration">0:00</span></div>
+  </section>
+
+  <p class="message">Some songs are better when they're shared.</p>
+  <div class="footer">Made especially for you</div>
+</main>
+
+<audio id="audio" preload="metadata" src="song.mp3"></audio>
+<script>
+const audio=document.getElementById('audio'), play=document.getElementById('play');
+const wave=document.getElementById('wave'), current=document.getElementById('current'), duration=document.getElementById('duration');
+const bars=64;
+for(let i=0;i<bars;i++){const b=document.createElement('span');b.className='bar';
+  const x=i/(bars-1), h=18+72*Math.pow(Math.sin(Math.PI*x),.7)*(0.35+0.65*Math.abs(Math.sin(i*2.17)));
+  b.dataset.h=h; b.style.height=h*.22+'%'; wave.appendChild(b);
+}
+const fmt=s=>{if(!Number.isFinite(s))return'0:00';s=Math.max(0,Math.floor(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+audio.addEventListener('loadedmetadata',()=>duration.textContent=fmt(audio.duration));
+play.addEventListener('click',async()=>{
+  try{if(audio.paused) await audio.play(); else audio.pause()}catch(e){alert('Tap the play button again to start the song.')}
+});
+audio.addEventListener('play',()=>{play.textContent='Ⅱ'});
+audio.addEventListener('pause',()=>{play.textContent='▶'});
+audio.addEventListener('ended',()=>{play.textContent='▶';});
+audio.addEventListener('timeupdate',()=>{
+  current.textContent=fmt(audio.currentTime);
+  const p=audio.duration?audio.currentTime/audio.duration:0;
+  [...wave.children].forEach((b,i)=>{
+    const base=Number(b.dataset.h), active=i/bars<p;
+    b.style.height=(active?base:base*.22)+'%';
+    b.style.opacity=active?'1':'.65';
+  });
+});
+</script>
+</body>
+</html>
